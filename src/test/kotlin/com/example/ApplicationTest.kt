@@ -68,4 +68,34 @@ class ApplicationTest {
         val response = client.get("/tasks/byPriority/Vital")
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
+
+    @Test
+    fun newTasksCanBeAdded() = testApplication {
+        application {
+            module()
+        }
+
+        val response1 = client.post("/tasks") {
+            header(
+                HttpHeaders.ContentType,
+                ContentType.Application.FormUrlEncoded.toString()
+            )
+            setBody(
+                listOf(
+                    "name" to "swimming",
+                    "description" to "Go to the beach",
+                    "priority" to "Low"
+                ).formUrlEncode()
+            )
+        }
+
+        assertEquals(HttpStatusCode.NoContent, response1.status)
+
+        val response2 = client.get("/tasks")
+        assertEquals(HttpStatusCode.OK, response2.status)
+        val body = response2.bodyAsText()
+
+        assertContains(body, "swimming")
+        assertContains(body, "Go to the beach")
+    }
 }
